@@ -17,10 +17,15 @@
 */
 package wz;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Objects;
 import wz.common.WzHeader;
+import wz.common.WzTool;
+import wz.common.WzVersion;
 import wz.io.WzInputStream;
+import wz.io.WzMappedInputStream;
 
 /**
  *
@@ -31,13 +36,19 @@ public final class WzFile extends WzObject<WzFile, WzObject<?, ?>> {
 	private String name;
 	private short version;
 	private WzDirectory root;
+	private WzMappedInputStream in;
 
 	private WzFile() {
 	}
 
-	public WzFile(String wz, short ver) {
-		name = wz;
-		version = ver;
+	public WzFile(String fullPath, int ver, WzVersion version) {
+		Path path = Paths.get(fullPath);
+		in = new WzMappedInputStream(path);
+        byte[] key = WzTool.generateKey(version);
+        in.setKey(key);
+		this.name = path.getFileName().toString();
+		this.version = (short) ver;
+        this.parse(in);
 	}
 
 	@Override
